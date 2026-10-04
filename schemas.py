@@ -11,7 +11,12 @@ class UsuarioSchema(BaseModel):
     #isso deixa o código mais patrinizado
 
     class Config:
-        from_atributes = True
+        from_attributes = True
     #por causa do ORM com essa classe você consegue definir um tipo Obrigatório a suas instancias dessa classe 
     #atribuindo ao atribuido da classe o UsuarioSchema -> UsuarioSchema.nome (agora o nome é obrigado a seguir a tipagem)
 
+class PedidoSchema(BaseModel):
+    usuario: int
+
+    class Config:
+        from_attributes = True

@@ -26,11 +26,11 @@ class Usuario(Base):
     # admin = Column("admin", Boolean, default=False)
 
     #a função com __init__ faz com que para criar as informações na tabela é necessário ter essas informações, por isso ID não está ai, porque é definido automaticamente, não pelo usuário
-    def __init__(self, nome, email, senha, ativo, admin):
+    def __init__(self, nome, email, senha):
         self.nome = nome
         self.email = email
         self.senha = senha
-        self.ativo = ativo
+        self.ativo = True
         # self.admin = admin
 
 #pedido

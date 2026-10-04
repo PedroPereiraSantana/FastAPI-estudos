@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base
+#orm = Object-Relational Mapping, ou seja, Mapeamento de Objeto-Relacional
 from sqlalchemy_utils.types import ChoiceType
 
 
@@ -23,15 +24,15 @@ class Usuario(Base):
     email = Column("email", String, nullable=False)
     senha = Column("senha", String)
     ativo = Column("ativo", Boolean)
-    # admin = Column("admin", Boolean, default=False)
+    admin = Column("admin", Boolean, default=False)
 
     #a função com __init__ faz com que para criar as informações na tabela é necessário ter essas informações, por isso ID não está ai, porque é definido automaticamente, não pelo usuário
-    def __init__(self, nome, email, senha):
+    def __init__(self, nome, email, senha, ativo = True, admin = False):
         self.nome = nome
         self.email = email
         self.senha = senha
-        self.ativo = True
-        # self.admin = admin
+        self.ativo = ativo
+        self.admin = admin
 
 #pedido
 class Pedido(Base):

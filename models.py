@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, F
 from sqlalchemy.orm import declarative_base
 from sqlalchemy_utils.types import ChoiceType
 
+
 #cria a conexão do banco
 db = create_engine("sqlite:///banco.db")
 
@@ -22,7 +23,7 @@ class Usuario(Base):
     email = Column("email", String, nullable=False)
     senha = Column("senha", String)
     ativo = Column("ativo", Boolean)
-    admin = Column("ativo", Boolean, default=False)
+    # admin = Column("admin", Boolean, default=False)
 
     #a função com __init__ faz com que para criar as informações na tabela é necessário ter essas informações, por isso ID não está ai, porque é definido automaticamente, não pelo usuário
     def __init__(self, nome, email, senha, ativo, admin):
@@ -30,7 +31,7 @@ class Usuario(Base):
         self.email = email
         self.senha = senha
         self.ativo = ativo
-        self.admin = admin
+        # self.admin = admin
 
 #pedido
 class Pedido(Base):
@@ -44,10 +45,9 @@ class Pedido(Base):
     )
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    status = Column("status", ChoiceType(choices=STATUS_PEDIDOS)) #Está puxando a tupla de STATUS_PEDIDO declarado mais acima, o valor da coluna não pode ser outro além do definidos
+    status = Column("status", String) #Está puxando a tupla de STATUS_PEDIDO declarado mais acima, o valor da coluna não pode ser outro além do definidos
     usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
-    #itens = 
 
     def __init__(self, usuario, status="PENDENTE", preco=0):
         self.usuario = usuario

@@ -8,6 +8,8 @@ load_dotenv()
 #essa função procura o arquivo .env no arquivo
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 #os.getenv() procura no arquivo .env essa váriavel e armazena o valor dela, nesse caso armazenamos o que ele achou em SECRET_KEY
 
 

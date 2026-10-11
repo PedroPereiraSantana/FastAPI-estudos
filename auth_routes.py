@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
 from dependencies import pegar_sessao
-from main import bcrypt_context
+from main import bcrypt_context, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
 from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
 
 
 #isso define um prefixo, então toda rota que for criada nesse arquivo vai partir do caminho '/auth'
@@ -12,9 +14,20 @@ auth_router = APIRouter(
         tags=["autenticacao"]
     ) 
 
-def criar_token(id):
-    token = f"sefgs865fefse974{id}"
-    return token
+def criar_token(id_usuario):
+    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    #definindo o tempo que o token vai durar, usando o tempo atual que o token é criado + o tempo definido no .env
+
+    dic_info = {
+        "sub": id_usuario,
+        "exp": data_expiracao
+    }
+    #definindo o dicionário de informações para a criação do token
+
+    jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
+    #está definindo a criação do token, colocando como parâmetro o dicionário, secret key e o algoritimo que está usando
+
+    return jwt_codificado
 
 def autenticar_usuario(email, senha, session):
     usuario = session.query(Usuario).filter(Usuario.email==email).first()

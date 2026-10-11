@@ -1,6 +1,7 @@
 # para rodar o código precisa executar no terminal: uvicorn main:app --reload
 from fastapi import FastAPI
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 import os
 
@@ -26,6 +27,8 @@ bcrypt_context = CryptContext(
     ela vai ser usada quando for necessário criptgrafar algo ou validar algo que está criptografado
     como validar uma senha, está função básicamente está armazenando nossa configurações de criptografia
 """
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login")
+
 
 from auth_routes import auth_router
 from order_routes import order_router

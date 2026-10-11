@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
-from dependencies import pegar_sessao
+from dependencies import pegar_sessao, verificar_token
 from main import bcrypt_context, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
 from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
@@ -14,12 +14,12 @@ auth_router = APIRouter(
         tags=["autenticacao"]
     ) 
 
-def criar_token(id_usuario):
-    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+def criar_token(id_usuario, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
+    data_expiracao = datetime.now(timezone.utc) + duracao_token
     #definindo o tempo que o token vai durar, usando o tempo atual que o token é criado + o tempo definido no .env
 
     dic_info = {
-        "sub": id_usuario,
+        "sub": str(id_usuario),
         "exp": data_expiracao
     }
     #definindo o dicionário de informações para a criação do token
@@ -28,6 +28,8 @@ def criar_token(id_usuario):
     #está definindo a criação do token, colocando como parâmetro o dicionário, secret key e o algoritimo que está usando
 
     return jwt_codificado
+
+
 
 def autenticar_usuario(email, senha, session):
     usuario = session.query(Usuario).filter(Usuario.email==email).first()
@@ -72,11 +74,23 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
         raise HTTPException(status_code=400, detail="Usuário não encontrado ou credenciais inválidas")
     else:
         access_token = criar_token(usuario.id)
+        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
         # JWT Bearer - headers = {"Access-Token": "Bearer token"}
         return{
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "Bearer"
         }
+
+
+@auth_router.get("/refresh")
+async def use_refresh_token(usuario: Usuario = Depends(verificar_token)):
+    access_token = criar_token(usuario.id)
+
+    return{
+        "access_token": access_token,
+        "token_type": "Bearer"
+    }
 
 
 #rota de deletar usuário

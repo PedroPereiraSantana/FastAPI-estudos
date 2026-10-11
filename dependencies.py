@@ -2,9 +2,11 @@ from models import db
 from sqlalchemy.orm import sessionmaker
 
 def pegar_sessao():
+#uma função para abrir o banco de dados sempre que for preciso para criar algo, deletar ou apenas consultar
     try:
     #usando essa estrutura de teste podemos verificar se a função funcinou como deveria ou não e fazer algo quanto a isso
         Session = sessionmaker(bind=db)
+        #Função sessionmaker server para abrir uma sessão, o bind fala onde vai pegar essa sessão, no caso na variavel DB que está no models.py armazenando o banco
         session = Session()
         yield session
         #o yield funciona como um return, mas o return finaliza a sessão quando é executado, o yield não, então ele vai para o finally

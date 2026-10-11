@@ -27,7 +27,8 @@ bcrypt_context = CryptContext(
     ela vai ser usada quando for necessário criptgrafar algo ou validar algo que está criptografado
     como validar uma senha, está função básicamente está armazenando nossa configurações de criptografia
 """
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login-form")
+#o OAuth2PasswordBearer é usado para extrair o token de sessão da URL no formato Bearer, e o tokenUrl="auth/login-form" informal de qual URL deve ser extraido o token
 
 
 from auth_routes import auth_router

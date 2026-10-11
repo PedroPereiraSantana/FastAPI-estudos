@@ -6,6 +6,7 @@ from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 #isso define um prefixo, então toda rota que for criada nesse arquivo vai partir do caminho '/auth'
@@ -69,7 +70,13 @@ async def criar_conta(usuario_schemas: UsuarioSchema, session: Session = Depends
 
 @auth_router.post("/login")
 async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sessao)):
+    #esse função pega como parametro as informações de login do usuário e armazena na variavel login_schema
+    #no Depends() ela fala que essa função não pode ser executada sem executar uma outra função, que no caso é a pegar_sessao
+    #O Session é usada no caso de banco de dados, quando o Depends abre o banco ele armazean aquela sessão no Session
+    #que logo depois é armazenado na variavel local session, podendo assim podendo executar ações envolvendo o banco de dados
+
     usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
+    #aqui é executado a função autenticar_usuario e armazendo o resultado dentro da várivel local usuario
     if not usuario:
         raise HTTPException(status_code=400, detail="Usuário não encontrado ou credenciais inválidas")
     else:
@@ -82,9 +89,24 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
             "token_type": "Bearer"
         }
 
+@auth_router.post("/login-form")
+async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(pegar_sessao)):
+    usuario = autenticar_usuario(dados_formulario.username, dados_formulario.password, session)
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Usuário não encontrado ou credenciais inválidas")
+    else:
+        access_token = criar_token(usuario.id)
+        return{
+            "access_token": access_token,
+            "token_type": "Bearer"
+        }
+
+
 
 @auth_router.get("/refresh")
 async def use_refresh_token(usuario: Usuario = Depends(verificar_token)):
+    #nessa função ele usa outras funções para validar se o token do usuário ainda é valido, caso não seja ele cria outro token
+    #caso o seu token seja invalida não é possivel acessar essa rota pois um dos parametros é justamente a validação do token
     access_token = criar_token(usuario.id)
 
     return{

@@ -23,14 +23,32 @@ def pegar_sessao():
 
 
 def verificar_token(token:str = Depends(oauth2_schema), session: Session = Depends(pegar_sessao)):
+    """
+    a função recebe um token do tipo string , essa dependecia OAuth2 serve para pegar o token do cabeçalho
+    e o session é para começar uma sessão no banco de dados
+    """
     try:
         dic_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
+        """
+        O jwt.decode serve para pegar o token e tirar as credenciais que estão nesse token, nesse caso ID e data de expiração do token,
+        as informações só conseguem ser tiradas do token por causa da SECRET_KEY e ALGORITHM que falam as configurações usadas para criar
+        o token de forma criptografada
+        """
         id_usuario = int(dic_info.get("sub"))
+        """
+        aqui ele da várivel que está as credenciais descriptografadas apenas o ID do usuário
+        """
 
     except JWTError:
+    #uma excessão para erro usando com exemplo de erro um erro direto da biblioteca do JWT
         raise HTTPException(status_code=401, detail="Acesso Negado, verifique a validade do token")
+    
 
     usuario = session.query(Usuario).filter(Usuario.id==id_usuario).first()
+    """
+    Aqui é iniciaddo uma sessão com a tabela Usuario, filtrando dentro da tabela o ID do usuário que foi extraido do token anteriormente
+    e procurando se ele existe dentro do banco
+    """
 
     if not usuario:
         raise HTTPException(status_code=401, detail="Acesso Invalido")

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import PedidoSchema
+from schemas import PedidoSchema, ItemPedidoSchema
 from sqlalchemy.orm import Session
 from dependencies import pegar_sessao, verificar_token
-from models import Pedido, Usuario
+from models import Pedido, Usuario, ItemPedido
 
 order_router = APIRouter(
         prefix="/pedidos", 
@@ -60,3 +60,24 @@ async def listar_pedido(session: Session = Depends(pegar_sessao), usuario: Usuar
         return {
             "pedidos": pedidos
         }
+
+
+@order_router.post("/pedido/adicionar-item/{id_pedido}")
+async def adicioanar_item_pedido(id_pedido: int, item_pedido_schema: ItemPedidoSchema, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id == id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=400, detail="Pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Você não tem permissão para fazer essa alteração")
+
+    item_pedido = ItemPedido(item_pedido_schema.quantidade, item_pedido_schema.sabor, item_pedido_schema.tamanho, item_pedido_schema.preco_unitario, id_pedido)
+
+
+    session.add(item_pedido)
+    pedido.calcular_preco()
+    session.commit()
+    return{
+        "mensagem": "Item criado com sucesso",
+        "Item_id": item_pedido.id,
+        "preco_pedido": pedido.preco
+    }

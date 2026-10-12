@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 #orm = Object-Relational Mapping, ou seja, Mapeamento de Objeto-Relacional
 from sqlalchemy_utils.types import ChoiceType
 
@@ -49,11 +49,24 @@ class Pedido(Base):
     status = Column("status", String) #Está puxando a tupla de STATUS_PEDIDO declarado mais acima, o valor da coluna não pode ser outro além do definidos
     usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
+    itens = relationship("ItemPedido", cascade="all, delete")
 
     def __init__(self, usuario, status="PENDENTE", preco=0):
         self.usuario = usuario
         self.status = status
         self.preco = preco
+
+
+    def calcular_preco(self):
+        self.preco = sum(item.preco_unitario * item.quantidade for item in self.itens)
+        """
+            esse sum() soma todos os itens do que está dentro dele, então o código passa item por item:
+            sum (10 * 2, 70 * 3, 20 * 1)
+            ai ele apenas vai somando esses valores, no caso acima o for() está passando item por item da lista itens
+            pegando o item da tabela e quantidade dele, multiplicando quantidade por valor e o sum() está somando todos os resultados 
+            sum() é nativo do python
+        """
+
 
 #itensPedido
 class ItemPedido(Base):

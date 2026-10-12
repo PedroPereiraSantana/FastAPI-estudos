@@ -1,4 +1,5 @@
-# para rodar o código precisa executar no terminal: uvicorn main:app --reload
+# para rodar o código precisa executar no terminal: python -m uvicorn main:app --reload
+# para iniciar o venv: source venv/Scripts/activate
 from fastapi import FastAPI
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer

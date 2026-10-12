@@ -41,8 +41,6 @@ async def cancelar_pedido(id_pedido: int, session: Session = Depends(pegar_sessa
             raise HTTPException(status_code=401, detail="você não tem permissão para executar está ação")
     #aqui está sendo validado se o usuário tem permissão de admin ou se o pedido é do usuário logado que está tentando acessar essa rota
     #caso não for o if recebe True e retorna o HTTPException
-
-
     
     pedido.status = "CANCELADO"
 
@@ -52,3 +50,13 @@ async def cancelar_pedido(id_pedido: int, session: Session = Depends(pegar_sessa
         "pedido": pedido
     }
 
+
+@order_router.get("/listar")
+async def listar_pedido(session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    if not usuario.admin:
+        raise HTTPException(status_code=401, detail="você não tem permissão para acessar essa rota")
+    else:
+        pedidos = session.query(Pedido).all()
+        return {
+            "pedidos": pedidos
+        }

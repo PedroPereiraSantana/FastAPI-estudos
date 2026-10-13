@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 #usamos para criar schemas com validação de dados
-from typing import Optional
+from typing import Optional, List
 #indica que um valor pode ser de determinado tipo ou None
 
 #o parametro BaseModel serve para validar o tipo dos dados com base nos tipos do pydantic
@@ -54,6 +54,19 @@ class ItemPedidoSchema(BaseModel):
     sabor: str
     tamanho: str
     preco_unitario: float
+
+    class Config:
+        from_attributes = True
+
+
+
+class ResponsePedidoSchema(BaseModel):
+#essa classe tem o padrão de respostas a serem enviadas quando atribuidas na rota
+    id: int
+    status: str
+    preco: float
+    itens: List[ItemPedidoSchema]
+    #está pegando como padrão de retorno o do ItemPedidoSchema
 
     class Config:
         from_attributes = True

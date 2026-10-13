@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import PedidoSchema, ItemPedidoSchema
+from schemas import PedidoSchema, ItemPedidoSchema, ResponsePedidoSchema
 from sqlalchemy.orm import Session
 from dependencies import pegar_sessao, verificar_token
 from models import Pedido, Usuario, ItemPedido
+from typing import List
 
 order_router = APIRouter(
         prefix="/pedidos", 
@@ -81,3 +82,68 @@ async def adicioanar_item_pedido(id_pedido: int, item_pedido_schema: ItemPedidoS
         "Item_id": item_pedido.id,
         "preco_pedido": pedido.preco
     }
+
+
+
+@order_router.post("/pedido/remover-item/{id_item_pedido}")
+async def remover_item_pedido(id_item_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+
+    item_pedido = session.query(ItemPedido).filter(ItemPedido.id == id_item_pedido).first()
+    pedido = session.query(Pedido).filter(Pedido.id==item_pedido.pedido).first()
+    if not item_pedido:
+        raise HTTPException(status_code=400, detail="Item do pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Você não tem permissão para fazer essa alteração")
+
+
+    session.delete(item_pedido)
+    pedido.calcular_preco()
+    session.commit()
+    return{
+        "mensagem": "Item pedido removido",
+        "quantidade_itens_pedido": len(pedido.itens),
+        "pedido": pedido
+    }
+
+#finalizar pedido (tipo cancelar, porque está pronto)
+@order_router.post("/finalizar-pedido/{id_pedido}")
+async def finalizar_pedido( id_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id == id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=403, detail="Pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para fazer está alteração")
+
+    pedido.status = "FINALIZADO"
+    session.commit()
+
+    return{
+        "mensagem": "Pedido finalizado com sucesso"
+    }
+
+#vizualizar 1 pedido
+@order_router.get("/vizualizar-pedido/{id_pedido}")
+async def vizualizar_pedido(id_pedido: int, session: Session = Depends(pegar_sessao)):
+    itens_pedido = session.query(ItemPedido).filter(ItemPedido.pedido == id_pedido).all() #esse .all() é necessário se não a consulta não ocorre
+
+    if not itens_pedido:
+        raise HTTPException(status_code=403, detail="Esse pedido não foi encotrado")
+
+    return {
+        "mensagem" : "os itens desse pedido são:",
+        "itens_pedido": itens_pedido
+    }
+    
+
+#vizualizar todos os pedidos de 1 usuário
+@order_router.get("/pedidos-usuario/{id_usuario}", response_model=List[ResponsePedidoSchema]) 
+#esse response_model é definido no schema como padrão de resposta na requisição
+#o List[] que é um import da bibliote typing é usando para que o response_model não fique limitado a retornar apenas um item, ele retorna uma lista
+
+async def pedido_usuario(id_usuario: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedidos_usuario = session.query(Pedido).filter(Pedido.usuario == id_usuario).all()
+
+    if not pedidos_usuario:
+        raise HTTPException(status_code=403, detail="Pedido não encontrado")
+
+    return pedidos_usuario
